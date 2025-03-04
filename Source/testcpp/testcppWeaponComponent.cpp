@@ -103,24 +103,28 @@ bool UtestcppWeaponComponent::AttachWeapon(AtestcppCharacter* TargetCharacter)
 void UtestcppWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	FVector socketLocation = GetSocketLocation("Ammo");
-	APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
-	APlayerCameraManager* CameraManager = Cast<APlayerCameraManager>(PlayerController->PlayerCameraManager);
-	FRotator CameraRotation = CameraManager->GetCameraRotation();
-	FVector StartingLocation = CameraRotation.RotateVector(MuzzleOffset);
-	StartingLocation = StartingLocation + socketLocation;
-	FPredictProjectilePathParams ProjectilPathParams = FPredictProjectilePathParams(20.f, StartingLocation, FVector(1000, 0, 0), 3.f);
-	ProjectilPathParams.bTraceWithCollision = true;
-	ProjectilPathParams.bTraceComplex = true;
+	if (Character != nullptr)
+	{
+		if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController())) {
+			APlayerCameraManager* CameraManager = Cast<APlayerCameraManager>(PlayerController->PlayerCameraManager);
+			FRotator CameraRotation = CameraManager->GetCameraRotation();
+			FVector StartingLocation = CameraRotation.RotateVector(MuzzleOffset);
+			StartingLocation = StartingLocation + socketLocation;
+			FPredictProjectilePathParams ProjectilPathParams = FPredictProjectilePathParams(20.f, StartingLocation, CameraRotation.Vector() * 3000, 3.f);
+			ProjectilPathParams.bTraceWithCollision = true;
+			ProjectilPathParams.bTraceComplex = true;
 
-	ProjectilPathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
-	ProjectilPathParams.DrawDebugTime = 0.5f;
-	ProjectilPathParams.SimFrequency = 15.f;
-	ProjectilPathParams.OverrideGravityZ = 0.f;
-	ProjectilPathParams.ObjectTypes.Add(EObjectTypeQuery::ObjectTypeQuery1);
-	ProjectilPathParams.bTraceWithChannel = false;
+			ProjectilPathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
+			ProjectilPathParams.DrawDebugTime = 0.5f;
+			ProjectilPathParams.SimFrequency = 15.f;
+			ProjectilPathParams.OverrideGravityZ = 0.f;
+			ProjectilPathParams.ObjectTypes.Add(EObjectTypeQuery::ObjectTypeQuery1);
+			ProjectilPathParams.bTraceWithChannel = false;
 
-	FPredictProjectilePathResult PredictResult;
-	bool bHit = UGameplayStatics::PredictProjectilePath(GetWorld(), ProjectilPathParams, PredictResult);
+			FPredictProjectilePathResult PredictResult;
+			bool bHit = UGameplayStatics::PredictProjectilePath(GetWorld(), ProjectilPathParams, PredictResult);
+		}
+	}
 }
 
 void UtestcppWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
